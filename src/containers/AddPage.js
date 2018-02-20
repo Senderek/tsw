@@ -3,15 +3,10 @@ import Auth from '../modules/Auth.js';
 import PropTypes from 'prop-types';
 import AddForm from "../components/AddForm";
 import ViewRecipe from "../components/ViewRecipe.js";
-
+import {browserHistory} from 'react-router';
 class AddPage extends React.Component {
-
-    /**
-     * Class constructor.
-     */
     constructor(props, context) {
         super(props, context);
-        console.log(this.props.params.recipeId);
 
         const storedMessage = localStorage.getItem('successMessage');
         let successMessage = '';
@@ -36,10 +31,10 @@ class AddPage extends React.Component {
 
         this.processForm = this.processForm.bind(this);
         this.changeRecipe = this.changeRecipe.bind(this);
+        this.DeleteRecipe = this.DeleteRecipe.bind(this);
     }
     componentDidMount() {
         var recipe = this.state.recipe;
-        console.log(recipe);
         if (!recipe || !recipe.recipeId || recipe.recipeId === 0) {
             recipe.recipeId = 0;
             return;
@@ -53,7 +48,7 @@ class AddPage extends React.Component {
         xhr.addEventListener('load', () => {
             if (xhr.status === 200) {
                 recipe.title = xhr.response.recipe.title;
-                recipe.contentText = xhr.response.recipe.text,
+                recipe.contentText = xhr.response.recipe.text;
                 recipe.recipeId = xhr.response.recipe._id;
                 this.setState({
                     recipe: recipe,
@@ -64,11 +59,7 @@ class AddPage extends React.Component {
         });
         xhr.send();
     }
-    /**
-     * Process the form.
-     *
-     * @param {object} event - the JavaScript event object
-     */
+
     processForm(event) {
         // prevent default action. in this case, action is the form submission event
         event.preventDefault();
@@ -85,20 +76,15 @@ class AddPage extends React.Component {
         xhr.setRequestHeader('Authorization', `bearer ${Auth.getToken()}`);
         xhr.responseType = 'json';
         xhr.addEventListener('load', () => {
-            console.log()
+            console.log();
             if (xhr.status === 200) {
-                this.context.router.redirect('/recipe/' + xhr.response._id);
+                browserHistory.push('/recipe/' + xhr.response._id);
+                //this.context.router.redirect('/recipe/' + xhr.response._id);
             } else {
             }
         });
         xhr.send(formData);
     }
-
-    /**
-     * Change the user object.
-     *
-     * @param {object} event - the JavaScript event object
-     */
     changeRecipe(event) {
         const field = event.target.name;
         const recipe = this.state.recipe;
@@ -108,11 +94,28 @@ class AddPage extends React.Component {
             recipe
         });
     }
+    DeleteRecipe()
+    {
+        var recipe = this.state.recipe;
+        if (!recipe || !recipe.recipeId || recipe.recipeId === 0) {
+            recipe.recipeId = 0;
+            return;
+        }
+        const xhr = new XMLHttpRequest();
+        const formData = `${recipe.recipeId}&${Auth.getToken()}`;
+        xhr.open('delete', 'http://localhost:3001/api/recipe/' + formData);
+        xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+        // set the authorization HTTP header
+        xhr.responseType = 'json';
+        xhr.addEventListener('load', () => {
+            if (xhr.status === 200) {
+                browserHistory.push('/recipe/' + xhr.response._id);
+                //this.context.router.redirect('/recipe/' + xhr.response._id);
+            }
+        });
+        xhr.send();
+    }
 
-
-    /**
-     * Render the component.
-     */
     render() {
         if (this.state.isReadOnly)
             return <ViewRecipe
@@ -123,6 +126,7 @@ class AddPage extends React.Component {
             <AddForm
                 onSubmit={this.processForm}
                 onChange={this.changeRecipe}
+                onDelete={this.DeleteRecipe}
                 errors={this.state.errors}
                 successMessage={this.state.successMessage}
                 recipe={this.state.recipe}

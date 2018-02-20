@@ -1,6 +1,5 @@
 import React  from 'react';
-import { Link } from 'react-router';
-import { Card, CardText } from 'material-ui/Card';
+import { Card } from 'material-ui/Card';
 import RaisedButton from 'material-ui/RaisedButton';
 import TextField from 'material-ui/TextField';
 import PropTypes from 'prop-types';
@@ -13,6 +12,7 @@ const AddForm = ({
                        onChange,
                        errors,
                        successMessage,
+                       onDelete,
                        recipe,
                        isNew
                    }) => (
@@ -48,7 +48,7 @@ const AddForm = ({
 
             <div className="button-line">
                 <RaisedButton style={style} type="submit" label="Save" primary />
-                {!isNew &&<RaisedButton style={style} label="Delete" secondary />}
+                {!isNew &&<RaisedButton style={style} onClick={onDelete} label="Delete" secondary />}
             </div>
 
         </form>
@@ -58,6 +58,7 @@ const AddForm = ({
 AddForm.propTypes = {
     onSubmit: PropTypes.func.isRequired,
     onChange: PropTypes.func.isRequired,
+    onDelete: PropTypes.func.isRequired,
     errors: PropTypes.object.isRequired,
     successMessage: PropTypes.string.isRequired,
     recipe: PropTypes.object.isRequired,

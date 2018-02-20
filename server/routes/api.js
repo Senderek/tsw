@@ -6,6 +6,32 @@ var Recipe = require('../models/recipe');
 
 const router = new express.Router();
 
+router.get('/myprofile/:auth', (req, res) => {
+    var token = req.params.auth;
+    //console.log(token);
+
+    return jwt.verify(token, config.jwtSecret, (err, decoded) => {
+        if (err) { return res.status(401).end(); }
+        const userId = decoded.sub;
+        // check if a user exists
+        return User.findById(userId, (userErr, user) => {
+            if (userErr || !user) {
+                return res.status(401).end();
+            }
+            Recipe.find({"author": userId}, (_err, rec) => {
+                var data = {};
+                if (_err )
+                    return res.status(404).end();
+                if (rec!= null) {
+                    data.recipes= rec;
+                    return res.status(200).json(data).end();
+                }
+            });
+        });
+    });
+});
+
+
 router.get('/dashboard', (req, res) => {
     res.status(200).json({
         message: "You're authorized to see this secret message."
@@ -89,4 +115,38 @@ router.post('/addRecipe', function (req, res) {
     });
 });
 
+router.delete('/recipe/:recipeid&:auth', function (req, res) {
+    var id = req.params.recipeid;
+    var token = req.params.auth;
+    if (id == 0)
+    {
+        res.status(404).end();
+    }
+
+    return jwt.verify(token, config.jwtSecret, (err, decoded) => {
+        if (err) { return res.status(401).end(); }
+        const userId = decoded.sub;
+        // check if a user exists
+        return User.findById(userId, (userErr, user) => {
+            if (userErr || !user) {
+                return res.status(401).end();
+            }
+            Recipe.findById(id, (_err, rec) => {
+                var data = {};
+                if (_err )
+                    return res.status(404).end();
+                if (rec!= null) {
+                    data.isReadOnly = true;
+                    data.recipe= rec;
+                    if (userId == rec.author)
+                    {
+                        Recipe.remove({_id:id}, (_er, r) => {if (_er) return res.send(_er);
+                            return res.json({ message: 'Deleted' })});
+                    }
+                }
+            });
+        });
+    });
+
+});
 module.exports = router;
