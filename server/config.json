@@ -1,0 +1,4 @@
+{
+  "dbUri": "mongodb://tswadmin:admin@ds046667.mlab.com:46667/tsw",
+  "jwtSecret": "m?D#4pXUUMXq5Wzg"
+}
